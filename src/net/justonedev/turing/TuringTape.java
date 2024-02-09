@@ -12,6 +12,8 @@ import java.math.BigInteger;
  */
 public class TuringTape {
 
+    // Todo redo @code section
+
     private static final boolean WRAP_AROUND = true;
 
     private final int tapeSize;
@@ -152,7 +154,17 @@ public class TuringTape {
         return headPosition;
     }
 
-    // Todo redo @code section
+    /**
+     * Performs a move action on the tape.
+     * If move action is NONE, does nothing, otherwise moves left or right.
+     * @param moveAction The move action
+     */
+    public void move(MoveAction moveAction) {
+        if (moveAction == MoveAction.NONE) return;
+        if (moveAction == MoveAction.RIGHT) moveRight();
+        else if (moveAction == MoveAction.LEFT) moveLeft();
+    }
+
     /**
      * Moves left by one tile.
      * If the current tile does not exist in memory, a new tile will be created.
