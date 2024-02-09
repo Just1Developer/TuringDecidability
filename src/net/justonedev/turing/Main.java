@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         System.out.println("Hello world!");
         // Lets do a test
         BigInteger[] myNums = {
@@ -19,7 +19,9 @@ public class Main {
         TuringTape tape = new TuringTape(10, 3, myNums);
         System.out.println(tape.getCurrentValue());
         for (int i = 0; i < 25; i++) {
-            System.in.read();
+            try {
+                System.in.read();
+            } catch (IOException ignored) { /* dont really care here */ }
             tape.moveRight();
             System.out.println(tape.getCurrentValue());
         }
