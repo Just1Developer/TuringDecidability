@@ -47,7 +47,7 @@ public class Main {
         machine.addTransition(tr1, tr2, tr3);
         
         System.out.println("Tape: " + tape);
-        int s = 0;
+        System.out.println("Tape unique: " + tape.getUniqueFullString());
         
         while(machine.isNotHalted()) {
             machine.nextStep(true);

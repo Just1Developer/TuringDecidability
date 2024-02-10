@@ -316,7 +316,14 @@ public class TuringTape {
                 default:
                     // more than two in between
                     builder.append(getFillerTile(firstState.tilePosition + 1));
-                    builder.append("... %d ... ".formatted(diff - 2));
+                    // Why -3? Because:
+                    // We have a diff, but both borders are exclusive. Since when calculating the diff,
+                    // by default one border is inclusive, we need to subtract that on top of the 2 we
+                    // are drawing to depict the correct number.
+                    // In other words, when skipping from 7 to 14 (with diff 7), the tile 14 is also being drawn next.
+                    // When subtracting 2, we would be depicting the 14th with our second printed state, which is not
+                    // what's happening and would not make it clear what the contents of the ... are.
+                    builder.append("... %d ... ".formatted(diff - 3));
                     builder.append(getFillerTile(next.tilePosition - 1));
                     builder.append(next.toString(headPosition));
                     break;
@@ -326,6 +333,48 @@ public class TuringTape {
         }
         builder.append("> }");
         return builder.toString();
+    }
+    
+    /**
+     * Gets the Tape as a less readable, but shorter full string,
+     * that is unique to this state of the tape. Different tapes
+     * are guaranteed different unique strings.
+     * Strings do contain the head position.
+     *
+     * @return The short unique string for this tape state.
+     */
+    public String getUniqueFullString() {
+        if (this.firstTapeTile == null) return "<%d;>";  // Empty Tape
+        
+        StringBuilder builder = new StringBuilder();
+        TuringTapeTile firstState = this.firstTapeTile;
+        builder.append("%d".formatted(headPosition));
+        builder.append(";%s".formatted(toUniqueStringSingleTile(firstState.value)));
+        while (true) {
+            TuringTapeTile next = firstState.getNextTile();
+            if (next == null) {
+                throw new NullPointerException("An unknown error occurred while generating a unique string: A state was null.");
+            }
+            int diff = next.getTilePosition() - firstState.getTilePosition();
+            if (diff <= 0) {
+                break;
+            }
+            builder.append(";%s".formatted(toUniqueStringSingleTile(next.value)));
+            builder.append(";".repeat(diff - 1));
+            // Go to next
+            firstState = next;
+        }
+        return builder.toString();
+    }
+    
+    /**
+     * Make a single BigInt value to a String.
+     * Returns empty String for null values.
+     * @return Number as String or empty String.
+     */
+    private String toUniqueStringSingleTile(BigInteger number) {
+        if (number == null) return "";
+        return number.toString();
     }
     
     private String getFillerTile(int headPosition) {
