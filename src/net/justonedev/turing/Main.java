@@ -106,6 +106,10 @@ public class Main {
         }
     }
     
+    /**
+     * Gets a basic small turing machine that will loop by setting the whole tape to 0 and loop.
+     * @return The configured looping turing machine.
+     */
     private static TuringMachine getLoopingMachine() {
         BigInteger[] myNums = {
                 null,
@@ -135,6 +139,10 @@ public class Main {
         return machine;
     }
     
+    /**
+     * Gets a basic small turing machine that will definitely halt.
+     * @return The configured halting turing machine.
+     */
     private static TuringMachine getSmallHaltingMachine() {
         BigInteger[] myNums = {
                 //*
