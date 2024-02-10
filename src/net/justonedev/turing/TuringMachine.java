@@ -130,12 +130,12 @@ public class TuringMachine {
      * @param transition The transition to add.
      * @param transitions Additional transitions (optional).
      */
-    public void addTransition(StateTransition transition, StateTransition... transitions) {
+    public void addTransitions(StateTransition transition, StateTransition... transitions) {
         if (transition == null) return;
         addTuringState(transition.getOriginState());
         addTuringState(transition.getDestinationState());
         for (StateTransition tr2 : transitions) {
-            addTransition(tr2);
+            addTransitions(tr2);
         }
     }
 
