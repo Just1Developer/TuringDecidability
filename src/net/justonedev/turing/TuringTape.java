@@ -15,7 +15,7 @@ public class TuringTape {
     // Todo redo @code section
 
     private static final boolean WRAP_AROUND = true;
-    private static final String FILLER_TILE = "[] ";
+    private static final String FILLER_TILE = "[ ] ";
     private static final String FILLER_TILE_SELECTED = "[> <] ";
     private static final String EMPTY_TAPE = "< >";
 
@@ -265,12 +265,14 @@ public class TuringTape {
 
         if (tile.getTilePosition() > headPosition + 1) {
             // Is NOT neighbouring tile. Create in-between tile
-            this.currentTapeTile = new TuringTapeTile(
+            TuringTapeTile newCurrentTapeTile = new TuringTapeTile(
                     headPosition + 1,
                     currentTapeTile,
                     tile,
                     null
             );
+            currentTapeTile.nextTile = newCurrentTapeTile;
+            currentTapeTile = newCurrentTapeTile;
             this.headPosition++;
             return false;
         }
@@ -287,10 +289,10 @@ public class TuringTape {
         StringBuilder builder = new StringBuilder();
         TuringTapeTile firstState = this.firstTapeTile;
         builder.append("{ Head: %d, Tape: <".formatted(headPosition));
-        builder.append(firstState);
+        builder.append(firstState.toString(headPosition));
         while (true) {
-            TuringTapeTile next = firstState.nextTile;
-            int diff = next.tilePosition - firstState.tilePosition;
+            TuringTapeTile next = firstState.getNextTile();
+            int diff = next.getTilePosition() - firstState.getTilePosition();
             if (diff <= 0) {
                 break;
             }
@@ -322,7 +324,7 @@ public class TuringTape {
             // Go to next
             firstState = next;
         }
-        builder.append(" > }");
+        builder.append("> }");
         return builder.toString();
     }
     
@@ -427,7 +429,7 @@ public class TuringTape {
          * @return BigInteger as String
          */
         private static String getBigIntAsString(BigInteger value) {
-            if (value == null) return "";
+            if (value == null) return " ";
             return value.toString();
         }
     }

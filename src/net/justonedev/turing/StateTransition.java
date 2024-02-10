@@ -43,6 +43,25 @@ public class StateTransition {
     ) {
         this(fromState, toState, new HashSet<>(Collections.singletonList(inputChar)), outputChar, moveAction);
     }
+    
+    /**
+     * Creates a new State Transition.
+     * This constructor does not take an input char,
+     * used for making input char null.
+     *
+     * @param fromState The origin state.
+     * @param toState The destination state.
+     * @param outputChar The output character. May be null.
+     * @param moveAction The move action after.
+     */
+    public StateTransition(
+            TuringState fromState,
+            TuringState toState,
+            BigInteger outputChar,
+            MoveAction moveAction
+    ) {
+        this(fromState, toState, new HashSet<>(Collections.singletonList(null)), outputChar, moveAction);
+    }
 
     public StateTransition(
             TuringState fromState,

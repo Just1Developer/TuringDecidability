@@ -14,7 +14,7 @@ public class TuringMachine {
 
     private static final String HALT_STRING = "HALT";
     private static final String EMPTY_SQUARE = "[]";
-    private static final String ADVANCED_PRINT = "%s --%s--> %s %s%n";
+    private static final String ADVANCED_PRINT = "%s --%s--> %s | >> %s-%s%n";
 
     private TuringTape turingTape;
     private List<TuringState> states;
@@ -128,11 +128,15 @@ public class TuringMachine {
      * but rather adds the two states to the turing machine if they are not already
      * included.
      * @param transition The transition to add.
+     * @param transitions Additional transitions (optional).
      */
-    public void addTransition(StateTransition transition) {
+    public void addTransition(StateTransition transition, StateTransition... transitions) {
         if (transition == null) return;
         addTuringState(transition.getOriginState());
         addTuringState(transition.getDestinationState());
+        for (StateTransition tr2 : transitions) {
+            addTransition(tr2);
+        }
     }
 
     /**
@@ -208,10 +212,11 @@ public class TuringMachine {
         MoveAction moveAction = transition.getMoveAction();
 
         if (print) System.out.printf(ADVANCED_PRINT, transition.getOriginState(), getBigIntAsString(input),
-                getBigIntAsString(output), transition.getDestinationState());
+                transition.getDestinationState(), getBigIntAsString(output), getMoveAction(moveAction));
         else System.out.print(output);
-        turingTape.write(output);
-        turingTape.move(moveAction);
+        this.turingTape.write(output);
+        this.turingTape.move(moveAction);
+        this.currentState = transition.getDestinationState();
         return false;
     }
     
@@ -225,6 +230,14 @@ public class TuringMachine {
     private static String getBigIntAsString(BigInteger integer) {
         if (integer == null) return EMPTY_SQUARE;
         return integer.toString();
+    }
+    
+    /**
+     * Converts a move action to its character for String representation.
+     * @return Single character string
+     */
+    private static String getMoveAction(MoveAction action) {
+        return action.toString().substring(0, 1);
     }
 
 }

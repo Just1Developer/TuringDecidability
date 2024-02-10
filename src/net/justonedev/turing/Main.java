@@ -9,8 +9,10 @@ public class Main {
         // Lets do a test
         BigInteger[] myNums = {
                 //*
-                new BigInteger("1"),
-                new BigInteger("1"),
+                //new BigInteger("1"),
+                //new BigInteger("1"),
+                null,
+                null,
                 new BigInteger("1"),
                 new BigInteger("1"),
                 new BigInteger("1"),
@@ -31,26 +33,28 @@ public class Main {
                 new BigInteger("9"),
                 //*/
         };
-        TuringTape tape = new TuringTape(15, 3, myNums);
+        TuringTape tape = new TuringTape(15, 7, myNums);
         
         TuringMachine machine = new TuringMachine();
         machine.setTape(tape);
         
         TuringState state1 = new TuringState(0);
         TuringState state2 = new TuringState(1);
-        StateTransition tr1 = new StateTransition(state1, state1, myNums[0], myNums[7], MoveAction.RIGHT);
-        StateTransition tr2 = new StateTransition(state1, state2, myNums[7], BigInteger.ONE, MoveAction.RIGHT);
+        StateTransition tr1 = new StateTransition(state1, state1, BigInteger.ONE, BigInteger.ZERO, MoveAction.RIGHT);
+        StateTransition tr2 = new StateTransition(state1, state2, BigInteger.ZERO, BigInteger.ONE, MoveAction.RIGHT);
+        StateTransition tr3 = new StateTransition(state2, state2, (BigInteger) null, BigInteger.TWO, MoveAction.RIGHT);
         
-        machine.addTransition(tr1);
-        machine.addTransition(tr2);
+        machine.addTransition(tr1, tr2, tr3);
         
         System.out.println("Tape: " + tape);
         int s = 0;
         
         while(machine.isNotHalted()) {
-            System.out.println("Step: " + ++s);
             machine.nextStep(true);
             System.out.println("Tape: " + tape);
+            try {
+                System.in.read();
+            } catch (IOException ignored) { /* dont really care here */ }
         }
         
         System.out.println("Tape: " + tape);
