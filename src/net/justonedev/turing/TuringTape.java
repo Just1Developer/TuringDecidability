@@ -15,6 +15,9 @@ public class TuringTape {
     // Todo redo @code section
 
     private static final boolean WRAP_AROUND = true;
+    private static final String FILLER_TILE = "[] ";
+    private static final String FILLER_TILE_SELECTED = "[> <] ";
+    private static final String EMPTY_TAPE = "< >";
 
     private final int tapeSize;
     /**
@@ -147,6 +150,28 @@ public class TuringTape {
     }
 
     /**
+     * Gets the current tile's value.
+     * @return Current tile value. May be null.
+     * Same as getCurrentValue();
+     */
+    public BigInteger read() {
+        if (currentTapeTile == null) {
+            return null;
+        }
+        return currentTapeTile.getValue();
+    }
+
+    /**
+     * Sets the current tile's value. May be null.
+     * Same as setCurrentValue();
+     */
+    public void write(BigInteger value) {
+        if (currentTapeTile != null) {
+            currentTapeTile.setValue(value);
+        }
+    }
+
+    /**
      * Gets the current head position.
      * @return Head position
      */
@@ -254,6 +279,58 @@ public class TuringTape {
         this.headPosition++;
         return false;
     }
+    
+    @Override
+    public String toString() {
+        if (this.firstTapeTile == null) return EMPTY_TAPE;  // Empty Tape
+        
+        StringBuilder builder = new StringBuilder();
+        TuringTapeTile firstState = this.firstTapeTile;
+        builder.append("{ Head: %d, Tape: <".formatted(headPosition));
+        builder.append(firstState);
+        while (true) {
+            TuringTapeTile next = firstState.nextTile;
+            int diff = next.tilePosition - firstState.tilePosition;
+            if (diff <= 0) {
+                break;
+            }
+            builder.append(" ");
+            switch (diff) {
+                case 1:
+                    // Normal, just print the next one
+                    builder.append(next.toString(headPosition));
+                    break;
+                case 2:
+                    // one in between
+                    builder.append(getFillerTile(firstState.tilePosition + 1));
+                    builder.append(next.toString(headPosition));
+                    break;
+                case 3:
+                    // two in between
+                    builder.append(getFillerTile(firstState.tilePosition + 1));
+                    builder.append(getFillerTile(firstState.tilePosition + 2));
+                    builder.append(next.toString(headPosition));
+                    break;
+                default:
+                    // more than two in between
+                    builder.append(getFillerTile(firstState.tilePosition + 1));
+                    builder.append("... %d ... ".formatted(diff - 2));
+                    builder.append(getFillerTile(next.tilePosition - 1));
+                    builder.append(next.toString(headPosition));
+                    break;
+            }
+            // Go to next
+            firstState = next;
+        }
+        builder.append(" > }");
+        return builder.toString();
+    }
+    
+    private String getFillerTile(int headPosition) {
+        if (this.headPosition == headPosition)
+            return FILLER_TILE_SELECTED;
+        return FILLER_TILE;
+    }
 
     /**
      * Object for a single Tile object.
@@ -329,6 +406,29 @@ public class TuringTape {
          */
         private void setValue(BigInteger integer) {
             value = integer;
+        }
+        
+        @Override
+        public String toString() {
+            return "[%s]".formatted(getBigIntAsString(value));
+        }
+        
+        public String toString(int headPosition) {
+            if (headPosition == this.tilePosition)
+                return "[>%s<]".formatted(getBigIntAsString(value));
+            return this.toString();
+        }
+        
+        /**
+         * Gets a BigInt as a String.
+         * Different to the TuringMachine's method, converts
+         * null to an empty String.
+         * @param value The BigInteger
+         * @return BigInteger as String
+         */
+        private static String getBigIntAsString(BigInteger value) {
+            if (value == null) return "";
+            return value.toString();
         }
     }
 }

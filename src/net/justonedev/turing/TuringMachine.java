@@ -13,6 +13,8 @@ public class TuringMachine {
     // Todo maybe add callback for output function
 
     private static final String HALT_STRING = "HALT";
+    private static final String EMPTY_SQUARE = "[]";
+    private static final String ADVANCED_PRINT = "%s --%s--> %s %s%n";
 
     private TuringTape turingTape;
     private List<TuringState> states;
@@ -144,6 +146,20 @@ public class TuringMachine {
     }
 
     /**
+     * If the machine has halted.
+     */
+    public boolean isHalted() {
+        return halted;
+    }
+
+    /**
+     * If the machine has not halted yet.
+     */
+    public boolean isNotHalted() {
+        return !halted;
+    }
+
+    /**
      * Resets the halted parameter to false.
      */
     public void overrideHalted() {
@@ -191,9 +207,24 @@ public class TuringMachine {
         BigInteger output = transition.getOutputChar();
         MoveAction moveAction = transition.getMoveAction();
 
-        System.out.print(output);
+        if (print) System.out.printf(ADVANCED_PRINT, transition.getOriginState(), getBigIntAsString(input),
+                getBigIntAsString(output), transition.getDestinationState());
+        else System.out.print(output);
+        turingTape.write(output);
         turingTape.move(moveAction);
         return false;
+    }
+    
+    /**
+     * Converts an input/output BigInteger to a number.
+     * Mainly implemented for converting null to it's appropriate string.
+     *
+     * @param integer the BigInt value
+     * @return BigInt as String
+     */
+    private static String getBigIntAsString(BigInteger integer) {
+        if (integer == null) return EMPTY_SQUARE;
+        return integer.toString();
     }
 
 }

@@ -146,4 +146,9 @@ public class TuringState {
     public void setStateID(int stateID) {
         this.stateID = stateID;
     }
+    
+    @Override
+    public String toString() {
+        return "(%s::%d)".formatted(getStateName(), getStateID());
+    }
 }
