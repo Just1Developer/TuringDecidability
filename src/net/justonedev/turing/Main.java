@@ -30,7 +30,7 @@ public class Main {
         
         Supervisor supervisor = new PrimitiveSupervisor(machine);
         supervisor.setPrintEnabled(true);
-        SupervisorResult result = runMachineSupervised(supervisor, true, 1500);
+        SupervisorResult result = runMachineSupervised(supervisor, true, 500);
         System.out.println("Result: " + result);
     }
     
@@ -127,14 +127,14 @@ public class Main {
         machine.setTape(tape);
         
         // Generate a machine with a singular state that overrides everything and loops back to itself.
-        
+        BigInteger output = null;
         TuringState singleState = new TuringState(0);
         machine.addTransitions(
-            new StateTransition(singleState, singleState, BigInteger.ZERO, MoveAction.RIGHT),
-            new StateTransition(singleState, singleState, BigInteger.ZERO, BigInteger.ZERO, MoveAction.RIGHT),
-            new StateTransition(singleState, singleState, BigInteger.ONE, BigInteger.ZERO, MoveAction.RIGHT),
-            new StateTransition(singleState, singleState, BigInteger.TWO, BigInteger.ZERO, MoveAction.RIGHT),
-            new StateTransition(singleState, singleState, new BigInteger("3"), BigInteger.ZERO, MoveAction.RIGHT)
+            new StateTransition(singleState, singleState, output, MoveAction.RIGHT),
+            new StateTransition(singleState, singleState, BigInteger.ZERO, output, MoveAction.RIGHT),
+            new StateTransition(singleState, singleState, BigInteger.ONE, output, MoveAction.RIGHT),
+            new StateTransition(singleState, singleState, BigInteger.TWO, output, MoveAction.RIGHT),
+            new StateTransition(singleState, singleState, new BigInteger("3"), output, MoveAction.RIGHT)
         );
         return machine;
     }
