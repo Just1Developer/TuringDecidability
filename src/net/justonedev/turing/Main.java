@@ -5,7 +5,6 @@ import net.justonedev.turing.supervisor.Supervisor;
 import net.justonedev.turing.supervisor.SupervisorResult;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.math.BigInteger;
 
 /**
@@ -23,6 +22,7 @@ public class Main {
         System.out.println("Hello world!");
         // Lets do a test
         TuringMachine machine = getLoopingMachine();
+        //machine = getSmallHaltingMachine();
         TuringTape tape = machine.getTape();
         
         System.out.println("Tape: " + tape);
@@ -30,7 +30,7 @@ public class Main {
         
         Supervisor supervisor = new PrimitiveSupervisor(machine);
         supervisor.setPrintEnabled(true);
-        SupervisorResult result = runMachineSupervised(supervisor, true, 500);
+        SupervisorResult result = runMachineSupervised(supervisor, true, 250);
         System.out.println("Result: " + result);
     }
     

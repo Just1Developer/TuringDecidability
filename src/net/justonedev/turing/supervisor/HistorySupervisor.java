@@ -2,11 +2,22 @@ package net.justonedev.turing.supervisor;
 
 import net.justonedev.turing.TuringMachine;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A smarter supervisor that only remembers affected tiles.
  * Downside: Needs to calculate from x to y every time.
+ *
+ * @author justonedeveloper
  */
 public class HistorySupervisor extends Supervisor {
+
+	/**
+	 * Notes the changes of each iteration.
+	 */
+	private List<String> iterationChanges;
+
 	/**
 	 * Creates a new basic supervisor and assigns the machine.
 	 *
@@ -14,6 +25,7 @@ public class HistorySupervisor extends Supervisor {
 	 */
 	HistorySupervisor(TuringMachine machine) {
 		super(machine);
+		iterationChanges = new ArrayList<>();
 	}
 	
 	/**
@@ -35,6 +47,12 @@ public class HistorySupervisor extends Supervisor {
 	 */
 	@Override
 	public SupervisorResult runSingleMachineIteration() {
+
+		boolean halted = machine.nextStep(this.print);
+		if (halted) return SupervisorResult.HALTS;
+
+
 		return null;
 	}
+
 }

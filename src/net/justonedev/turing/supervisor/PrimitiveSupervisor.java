@@ -18,11 +18,8 @@ import java.util.Set;
  * @author justonedeveloper
  */
 public class PrimitiveSupervisor extends Supervisor {
-	
-	
-	// Todo Change states to collection without size limit
-	
-	private final Set<String> states;
+
+	private final PrimitiveHistory<String> states;
 	
 	/**
 	 * Creates a new primitive supervisor and connects it to a turing machine.
@@ -32,7 +29,7 @@ public class PrimitiveSupervisor extends Supervisor {
 	 */
 	public PrimitiveSupervisor(TuringMachine machine) {
 		super(machine);
-		states = new HashSet<>();
+		states = new PrimitiveHistory<>(false);
 		states.add(generateSupervisorTriple(machine));
 	}
 	

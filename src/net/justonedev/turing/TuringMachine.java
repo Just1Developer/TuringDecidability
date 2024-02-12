@@ -7,6 +7,8 @@ import java.util.List;
 /**
  * The main simulator for a turing machine, consists of connected Machine states and a Tape to read /
  * write on.
+ *
+ * @author justonedeveloper
  */
 public class TuringMachine {
 
@@ -238,6 +240,18 @@ public class TuringMachine {
      */
     private static String getMoveAction(MoveAction action) {
         return action.toString().substring(0, 1);
+    }
+
+    /**
+     * A storage class to store the state change of a single
+     * step of a turing machine.
+     */
+    public static class TuringStateChange {
+
+        BigInteger preValue;
+        BigInteger postValue;
+        BigInteger headPosition;
+
     }
 
 }
