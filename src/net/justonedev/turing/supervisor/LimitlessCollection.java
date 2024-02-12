@@ -8,26 +8,23 @@ package net.justonedev.turing.supervisor;
  *
  * @author justonedeveloper
  */
-public class PrimitiveHistory<T> {
+public class LimitlessCollection<T> {
 
     /**
      * Default Behaviour: List, duplicates allowed.
      */
     private static final boolean DEFAULT_ALLOW_DUPES = true;
 
-    private HistoryContainer firstContainer;
-    private HistoryContainer lastContainer;
+    private CollectionContainer firstContainer;
+    private CollectionContainer lastContainer;
     private boolean allowDuplicates;
 
     /**
      * Creates a new primitive history storage collection.
      * Can be set to allow/disallow duplicate entries, default is allow.
-     *
-     * @param entries The entries to start. Optional.
      */
-    @SafeVarargs
-    public PrimitiveHistory(T... entries) {
-        this(DEFAULT_ALLOW_DUPES, entries);
+    public LimitlessCollection() {
+        this(DEFAULT_ALLOW_DUPES);
     }
 
     /**
@@ -35,16 +32,9 @@ public class PrimitiveHistory<T> {
      * Can be set to allow/disallow duplicate entries.
      *
      * @param allowDuplicates If duplicate entries are allowed.
-     * @param entries The entries to start. Optional.
      */
-    @SafeVarargs
-    public PrimitiveHistory(boolean allowDuplicates, T... entries) {
+    public LimitlessCollection(boolean allowDuplicates) {
         this.allowDuplicates = allowDuplicates;
-        if (entries != null) {
-            for (T entry : entries) {
-                add(entry);
-            }
-        }
     }
 
     /**
@@ -74,17 +64,34 @@ public class PrimitiveHistory<T> {
      */
     public boolean add(T entry) {
         if (firstContainer == null) {
-            HistoryContainer container = new HistoryContainer(0,null, entry);
+            CollectionContainer container = new CollectionContainer(0,null, entry);
             // First element, always not in
             firstContainer = container;
             lastContainer = container;
             return true;
         }
         if (!allowDuplicates && contains(entry)) return false;
-        HistoryContainer container = new HistoryContainer(lastContainer, entry);
+        CollectionContainer container = new CollectionContainer(lastContainer, entry);
         lastContainer.setNextContainer(container);
         lastContainer = container;
         return true;
+    }
+
+    /**
+     * Adds multiple elements to the collection.
+     * Returns true if at least one element was added successfully.
+     *
+     * @return True if at least one element was added.
+     */
+    @SafeVarargs
+    public final boolean addAll(T... entries) {
+        boolean result = false;
+        if (entries != null) {
+            for (T entry : entries) {
+                result |= add(entry);
+            }
+        }
+        return result;
     }
 
     /**
@@ -97,7 +104,7 @@ public class PrimitiveHistory<T> {
         if (lastContainer == null || firstContainer == null)
             return false;
         // Doubly recursive search
-        HistoryContainer frontSearcher = firstContainer, backSearcher = lastContainer;
+        CollectionContainer frontSearcher = firstContainer, backSearcher = lastContainer;
         while (frontSearcher != null && backSearcher != null) {
 
             // Compare values
@@ -118,11 +125,11 @@ public class PrimitiveHistory<T> {
      *
      * @author justonedeveloper
      */
-    private class HistoryContainer {
+    private class CollectionContainer {
 
         private T storageValue;
-        private HistoryContainer previousContainer;
-        private HistoryContainer nextContainer;
+        private CollectionContainer previousContainer;
+        private CollectionContainer nextContainer;
         private final int containerID;
 
         /**
@@ -131,7 +138,7 @@ public class PrimitiveHistory<T> {
          *
          * @param previous The previous linked container. Must not be null without id specification.
          */
-        private HistoryContainer(HistoryContainer previous) {
+        private CollectionContainer(CollectionContainer previous) {
             this(previous, null);
         }
 
@@ -142,7 +149,7 @@ public class PrimitiveHistory<T> {
          * @param id The ID of the container.
          * @param previous The previous linked container.
          */
-        private HistoryContainer(int id, HistoryContainer previous) {
+        private CollectionContainer(int id, CollectionContainer previous) {
             this(id, previous, null);
         }
 
@@ -153,7 +160,7 @@ public class PrimitiveHistory<T> {
          * @param previous The previous linked container. Must not be null without id specification.
          * @param value Content value.
          */
-        private HistoryContainer(HistoryContainer previous, T value) {
+        private CollectionContainer(CollectionContainer previous, T value) {
             if (previous == null)
                 throw new NullPointerException("Previous must not be null when creating an ID-less history container element!");
             this.containerID = previous.getContainerID() + 1;
@@ -168,7 +175,7 @@ public class PrimitiveHistory<T> {
          * @param previous The previous linked container. Can be null for this argument configuration.
          * @param value Content value.
          */
-        private HistoryContainer(int id, HistoryContainer previous, T value) {
+        private CollectionContainer(int id, CollectionContainer previous, T value) {
             this.containerID = id;
             setValue(value);
             setPreviousContainer(previous);
@@ -210,7 +217,7 @@ public class PrimitiveHistory<T> {
          * Gets the next container in the list. May be null.
          * @return Next container or null.
          */
-        private HistoryContainer getNextContainer() {
+        private CollectionContainer getNextContainer() {
             return nextContainer;
         }
 
@@ -218,7 +225,7 @@ public class PrimitiveHistory<T> {
          * Sets the next container to a specified container.
          * @param nextContainer The next container.
          */
-        private void setNextContainer(HistoryContainer nextContainer) {
+        private void setNextContainer(CollectionContainer nextContainer) {
             this.nextContainer = nextContainer;
         }
 
@@ -234,7 +241,7 @@ public class PrimitiveHistory<T> {
          * Gets the previous container in the list. May be null.
          * @return Previous container or null.
          */
-        private HistoryContainer getPreviousContainer() {
+        private CollectionContainer getPreviousContainer() {
             return previousContainer;
         }
 
@@ -242,7 +249,7 @@ public class PrimitiveHistory<T> {
          * Sets the previous container to a specified container.
          * @param previousContainer The next container.
          */
-        private void setPreviousContainer(HistoryContainer previousContainer) {
+        private void setPreviousContainer(CollectionContainer previousContainer) {
             this.previousContainer = previousContainer;
         }
 
@@ -264,8 +271,8 @@ public class PrimitiveHistory<T> {
          */
         @Override
         public boolean equals(Object obj) {
-            return obj != null && (obj.getClass() == HistoryContainer.class &&
-                    ((HistoryContainer) obj).getContainerID() == containerID);
+            return obj != null && (obj.getClass() == CollectionContainer.class &&
+                    ((CollectionContainer) obj).getContainerID() == containerID);
         }
 
         /**

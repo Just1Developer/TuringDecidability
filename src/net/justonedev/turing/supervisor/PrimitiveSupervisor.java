@@ -2,9 +2,6 @@ package net.justonedev.turing.supervisor;
 
 import net.justonedev.turing.TuringMachine;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * A primitive supervisor. Remembers, in no particular order, all state-triples
  * the machine has been in. If a triple occurs twice, a loop is detected and
@@ -19,7 +16,7 @@ import java.util.Set;
  */
 public class PrimitiveSupervisor extends Supervisor {
 
-	private final PrimitiveHistory<String> states;
+	private final LimitlessCollection<String> states;
 	
 	/**
 	 * Creates a new primitive supervisor and connects it to a turing machine.
@@ -29,7 +26,7 @@ public class PrimitiveSupervisor extends Supervisor {
 	 */
 	public PrimitiveSupervisor(TuringMachine machine) {
 		super(machine);
-		states = new PrimitiveHistory<>(false);
+		states = new LimitlessCollection<>(false);
 		states.add(generateSupervisorTriple(machine));
 	}
 	
