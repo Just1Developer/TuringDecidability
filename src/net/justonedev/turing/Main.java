@@ -27,10 +27,13 @@ public class Main {
         
         System.out.println("Tape: " + tape);
         System.out.println("Tape unique: " + tape.getUniqueFullString());
-        
+
+        System.out.println("Press any button to continue...");
+        waitForCharInput();
+
         Supervisor supervisor = new PrimitiveSupervisor(machine);
         supervisor.setPrintEnabled(true);
-        SupervisorResult result = runMachineSupervised(supervisor, true, 250);
+        SupervisorResult result = runMachineSupervised(supervisor, true, 300);
         System.out.println("Result: " + result);
     }
     
@@ -65,9 +68,7 @@ public class Main {
         while(!supervisor.isFinished()) {
             result = supervisor.runSingleMachineIteration();
             if (printTape) System.out.println("Tape: " + supervisor.getTuringMachine().getTape());
-            try {
-                System.in.read();
-            } catch (IOException ignored) { /* dont really care here */ }
+            waitForCharInput();
         }
         return result;
     }
@@ -100,10 +101,18 @@ public class Main {
         while(machine.isNotHalted()) {
             machine.nextStep(printDetails);
             if (printTape) System.out.println("Tape: " + machine.getTape());
-            try {
-                System.in.read();
-            } catch (IOException ignored) { /* dont really care here */ }
+            waitForCharInput();
         }
+    }
+
+    /**
+     * Waits for a console input by requesting a read() from the default input stream.
+     * Catches and ignores a possible IO exception.
+     */
+    private static void waitForCharInput() {
+        try {
+            System.in.read();
+        } catch (IOException ignored) { /* dont really care here */ }
     }
     
     /**
