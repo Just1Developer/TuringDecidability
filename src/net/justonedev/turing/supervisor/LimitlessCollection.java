@@ -271,8 +271,8 @@ public class LimitlessCollection<T> {
          */
         @Override
         public boolean equals(Object obj) {
-            return obj != null && (obj.getClass() == CollectionContainer.class &&
-                    ((CollectionContainer) obj).getContainerID() == containerID);
+            return obj != null && obj.getClass().equals(CollectionContainer.class) &&
+                    ((CollectionContainer) obj).getContainerID() == containerID;
         }
 
         /**

@@ -1,11 +1,16 @@
 package net.justonedev.turing;
 
+import net.justonedev.turing.acceptors.Acceptor;
+import net.justonedev.turing.acceptors.AcceptorState;
 import net.justonedev.turing.supervisor.PrimitiveSupervisor;
 import net.justonedev.turing.supervisor.Supervisor;
 import net.justonedev.turing.supervisor.SupervisorResult;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * The main class, used for debugging, testing and running programs.
@@ -192,5 +197,52 @@ public class Main {
         
         machine.addTransitions(tr1, tr2, tr3);
         return machine;
+    }
+
+    /**
+     * Gets a simple acceptor for input validation.
+     * Examples are taken from simple tasks, current configuration:
+     * <p></p>
+     * {0,1}*#{0,1}*, first half has at least as many 1s as second half.
+     *
+     * @param input The input for the acceptor.
+     * @param overhead The amount the tape is longer than the input. Must be >= 0.
+     * @return The Acceptor
+     */
+    private static Acceptor getSimpleFiniteAcceptor(String input, int overhead) {
+
+        // This is messy and clunky
+        BigInteger[] tapeContent = new BigInteger[input.length()];
+        HashMap<Integer, Character> inputMappings = new HashMap<>();
+        HashMap<Character, Integer> outputMappings = new HashMap<>();
+        for (int i = 0; i < input.length(); ++i) {
+            char c = input.charAt(i);
+            BigInteger numRepr;
+            if (!outputMappings.containsKey(c)) {
+                int repr = inputMappings.size();
+                inputMappings.put(repr, c);
+                outputMappings.put(c, repr);
+                numRepr = new BigInteger(String.valueOf(repr));
+            } else {
+                numRepr = new BigInteger(String.valueOf(outputMappings.get(c)));
+            }
+            tapeContent[i] = numRepr;
+        }
+
+        TuringTape tape = new TuringTape(input.length() + overhead, 0, tapeContent);
+
+        Acceptor acceptor = new Acceptor();
+        acceptor.setTape(tape);
+
+        AcceptorState state1 = new AcceptorState(0);
+        AcceptorState state2 = new AcceptorState(1);
+
+        acceptor.addTransitions(
+            new StateTransition(state1, state1, BigInteger.ONE, BigInteger.ZERO, MoveAction.RIGHT),
+            new StateTransition(state1, state2, BigInteger.ZERO, BigInteger.ONE, MoveAction.RIGHT),
+            new StateTransition(state2, state2, (BigInteger) null, BigInteger.TWO, MoveAction.RIGHT)
+        );
+
+        return acceptor;
     }
 }
