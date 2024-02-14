@@ -1,10 +1,12 @@
-package net.justonedev.turing.supervisor;
+package net.justonedev.turing.collections;
 
 /**
  * A collection class of theoretically infinite size.
  * Not as fast as any set, but in theory unlimited in size.
  * <p></p>
  * Doubly linked list style.
+ *
+ * @param <T> The type of the collection.
  *
  * @author justonedeveloper
  */
@@ -207,7 +209,7 @@ public class LimitlessCollection<T> {
 
         /**
          * If the stored value is != null.
-         * @return Existence of storage value.
+         * @return Existence of stored value.
          */
         private boolean hasValue() {
             return storageValue != null;
@@ -284,5 +286,4 @@ public class LimitlessCollection<T> {
             return containerID;
         }
     }
-
 }

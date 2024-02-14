@@ -1,6 +1,7 @@
 package net.justonedev.turing.supervisor;
 
 import net.justonedev.turing.TuringMachine;
+import net.justonedev.turing.collections.LimitlessCollection;
 
 /**
  * A primitive supervisor. Remembers, in no particular order, all state-triples
