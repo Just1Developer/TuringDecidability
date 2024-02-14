@@ -19,16 +19,15 @@ public class TuringTape {
     private static final String FILLER_TILE_SELECTED = "[> <] ";
     private static final String EMPTY_TAPE = "< >";
 
-    private final int tapeSize;
+    private final BigInteger tapeSize;
     /**
      * Head location is used and necessary to creates tiles just as needed.
      */
-    private int headPosition;
+    private BigInteger headPosition;
     private TuringTapeTile currentTapeTile;
     private TuringTapeTile firstTapeTile;
     private TuringTapeTile lastTapeTile;
 
-    // Todo startAt parameter
     /**
      * Creates a new Turing Tape object. Needs to specify tapeSize and headPosition,
      * inserting values is optional.
@@ -45,17 +44,37 @@ public class TuringTape {
      * @param headPosition The starting position (index) of the head of the turing machine.
      * @param values The contents of the tape.
      */
-    public TuringTape(final int tapeSize, final int headPosition, final BigInteger... values) {
-        if (tapeSize < 1) {
+    public TuringTape(final long tapeSize, final long headPosition, final BigInteger... values) {
+        this(BigInteger.valueOf(tapeSize), BigInteger.valueOf(headPosition), values);
+    }
+
+    /**
+     * Creates a new Turing Tape object. Needs to specify tapeSize and headPosition,
+     * inserting values is optional.
+     * Value insertion starts at zero by default, for filler values add null entries at the start.
+     *
+     * @throws IllegalArgumentException If any argument is invalid. Invalid argument cases are:
+     * - Tape size is smaller than 1.
+     * - Head position is negative.
+     * - Head position is >= tape size. Equal is invalid since position functions as index.
+     * - The tape is not long enough to store all values.
+     * Please insure validity of arguments beforehand or catch thrown exceptions.
+     *
+     * @param tapeSize The size of the tape. Unchangeable.
+     * @param headPosition The starting position (index) of the head of the turing machine.
+     * @param values The contents of the tape.
+     */
+    public TuringTape(final BigInteger tapeSize, final BigInteger headPosition, final BigInteger... values) {
+        if (tapeSize.compareTo(BigInteger.ONE) < 0) {
             throw new IllegalArgumentException("Tape size may not be smaller than 1.");
         }
-        if (headPosition < 0) {
+        if (headPosition.compareTo(BigInteger.ZERO) < 0) {
             throw new IllegalArgumentException("Head position may not be negative.");
         }
-        if (headPosition >= tapeSize) {
+        if (headPosition.compareTo(tapeSize) >= 0) {
             throw new IllegalArgumentException("Head position index must be smaller than the tape size.");
         }
-        if (values.length > tapeSize) {
+        if (tapeSize.compareTo(BigInteger.valueOf(values.length)) < 0) {
             throw new IllegalArgumentException("Tape is not large enough to store the input.");
         }
 
@@ -76,45 +95,46 @@ public class TuringTape {
         this.lastTapeTile = null;
 
         // Start with -1 to trigger if () even if values are empty
-        int tilePos = -1;
+        BigInteger tilePos = BigInteger.ZERO;
         for (BigInteger value : values) {
-            tilePos++;
             // Create a new tile and connect it
             TuringTapeTile newTile = new TuringTapeTile(tilePos, current, null, value);
             if (current != null) current.nextTile = newTile;
             current = newTile;
-            if (tilePos == this.headPosition) {
+            if (tilePos.compareTo(this.headPosition) == 0) {
                 this.currentTapeTile = newTile;
             }
-            if (tilePos == 0) {
+            if (tilePos.compareTo(BigInteger.ZERO) == 0) {
                 this.firstTapeTile = newTile;
             }
-            if (tilePos == tapeSize - 1) {
+            if (tilePos.compareTo(tapeSize.subtract(BigInteger.ONE)) == 0) {
                 this.lastTapeTile = newTile;
             }
+
+            tilePos = tilePos.add(BigInteger.ONE);
         }
 
         // Insert a first tile
         if (this.firstTapeTile == null) {
             // None were created
-            if (headPosition == 0) {
+            if (headPosition.compareTo(BigInteger.ZERO) == 0) {
                 this.firstTapeTile = currentTapeTile;
             } else {
-                this.firstTapeTile = new TuringTapeTile(0, null, currentTapeTile, null);
+                this.firstTapeTile = new TuringTapeTile(BigInteger.ZERO, null, currentTapeTile, null);
             }
         }
 
         // Insert a last tile
         if (this.lastTapeTile == null) {
             // Tape size is larger than inputs
-            this.lastTapeTile = new TuringTapeTile(tapeSize - 1,
+            this.lastTapeTile = new TuringTapeTile(tapeSize.subtract(BigInteger.ONE),
                     current == null ? this.firstTapeTile : current,
                     this.firstTapeTile,
                     null);
         }
 
         // If not yet accommodated and currentTapeTile is null
-        if (headPosition > tilePos) {
+        if (headPosition.compareTo(tilePos) > 0) {
             if (current == null) {
                 this.currentTapeTile = new TuringTapeTile(headPosition, firstTapeTile, lastTapeTile, null);
             } else {
@@ -175,7 +195,7 @@ public class TuringTape {
      * Gets the current head position.
      * @return Head position
      */
-    public int getHeadPosition() {
+    public BigInteger getHeadPosition() {
         return headPosition;
     }
 
@@ -204,12 +224,12 @@ public class TuringTape {
      */
     public boolean moveLeft() {
         // All the way left:
-        if (headPosition == 0) {
+        if (headPosition.compareTo(BigInteger.ZERO) == 0) {
             if (!WRAP_AROUND) {
                 System.err.println("Cannot move left: Head Position is zero and wrap around is off.");
                 return false;
             }
-            this.headPosition = tapeSize - 1;
+            this.headPosition = tapeSize.subtract(BigInteger.ONE);
             this.currentTapeTile = this.lastTapeTile;
             return true;
         }
@@ -218,20 +238,20 @@ public class TuringTape {
         // This shouldn't happen
         if (tile == null) throw new NullPointerException("Cannot move left: tile was null.");
 
-        if (tile.getTilePosition() < headPosition - 1) {
+        if (tile.getTilePosition().compareTo(headPosition.subtract(BigInteger.ONE)) < 0) {
             // Is NOT neighbouring tile. Create in-between tile
             this.currentTapeTile = new TuringTapeTile(
-                    headPosition - 1,
+                    headPosition.subtract(BigInteger.ONE),
                     tile,
                     currentTapeTile,
                     null
             );
-            this.headPosition--;
+            this.headPosition = this.headPosition.subtract(BigInteger.ONE);
             return false;
         }
 
         this.currentTapeTile = tile;
-        this.headPosition--;
+        this.headPosition = this.headPosition.subtract(BigInteger.ONE);
         return false;
     }
 
@@ -249,12 +269,12 @@ public class TuringTape {
      */
     public boolean moveRight() {
         // All the way left:
-        if (headPosition == tapeSize - 1) {
+        if (headPosition.compareTo(tapeSize.subtract(BigInteger.ONE)) == 0) {
             if (!WRAP_AROUND) {
                 System.err.println("Cannot move right: Head Position is zero and wrap around is off.");
                 return false;
             }
-            this.headPosition = 0;
+            this.headPosition = BigInteger.ZERO;
             this.currentTapeTile = this.firstTapeTile;
             return true;
         }
@@ -263,22 +283,22 @@ public class TuringTape {
         // This shouldn't happen
         if (tile == null) throw new NullPointerException("Cannot move right: tile was null.");
 
-        if (tile.getTilePosition() > headPosition + 1) {
+        if (tile.getTilePosition().compareTo(headPosition.add(BigInteger.ONE)) > 0) {
             // Is NOT neighbouring tile. Create in-between tile
             TuringTapeTile newCurrentTapeTile = new TuringTapeTile(
-                    headPosition + 1,
+                    headPosition.add(BigInteger.ONE),
                     currentTapeTile,
                     tile,
                     null
             );
             currentTapeTile.nextTile = newCurrentTapeTile;
             currentTapeTile = newCurrentTapeTile;
-            this.headPosition++;
+            this.headPosition = this.headPosition.add(BigInteger.ONE);
             return false;
         }
 
         this.currentTapeTile = tile;
-        this.headPosition++;
+        this.headPosition = this.headPosition.add(BigInteger.ONE);
         return false;
     }
     
@@ -292,41 +312,36 @@ public class TuringTape {
         builder.append(firstState.toString(headPosition));
         while (true) {
             TuringTapeTile next = firstState.getNextTile();
-            int diff = next.getTilePosition() - firstState.getTilePosition();
-            if (diff <= 0) {
+            BigInteger diff = next.getTilePosition().subtract(firstState.getTilePosition());
+            if (diff.compareTo(BigInteger.ZERO) <= 0) {
                 break;
             }
             builder.append(" ");
-            switch (diff) {
-                case 1:
-                    // Normal, just print the next one
-                    builder.append(next.toString(headPosition));
-                    break;
-                case 2:
-                    // one in between
-                    builder.append(getFillerTile(firstState.tilePosition + 1));
-                    builder.append(next.toString(headPosition));
-                    break;
-                case 3:
-                    // two in between
-                    builder.append(getFillerTile(firstState.tilePosition + 1));
-                    builder.append(getFillerTile(firstState.tilePosition + 2));
-                    builder.append(next.toString(headPosition));
-                    break;
-                default:
-                    // more than two in between
-                    builder.append(getFillerTile(firstState.tilePosition + 1));
-                    // Why -3? Because:
-                    // We have a diff, but both borders are exclusive. Since when calculating the diff,
-                    // by default one border is inclusive, we need to subtract that on top of the 2 we
-                    // are drawing to depict the correct number.
-                    // In other words, when skipping from 7 to 14 (with diff 7), the tile 14 is also being drawn next.
-                    // When subtracting 2, we would be depicting the 14th with our second printed state, which is not
-                    // what's happening and would not make it clear what the contents of the ... are.
-                    builder.append("... %d ... ".formatted(diff - 3));
-                    builder.append(getFillerTile(next.tilePosition - 1));
-                    builder.append(next.toString(headPosition));
-                    break;
+            if (diff.compareTo(BigInteger.ONE) == 0) {
+                // Normal, just print the next one
+                builder.append(next.toString(headPosition));
+            } else if (diff.compareTo(BigInteger.TWO) == 0) {
+                // one in between
+                builder.append(getFillerTile(firstState.tilePosition.add(BigInteger.ONE)));
+                builder.append(next.toString(headPosition));
+            } else if (diff.compareTo(BigInteger.valueOf(3)) == 0) {
+                // two in between
+                builder.append(getFillerTile(firstState.tilePosition.add(BigInteger.ONE)));
+                builder.append(getFillerTile(firstState.tilePosition.add(BigInteger.TWO)));
+                builder.append(next.toString(headPosition));
+            } else {
+                // more than two in between
+                builder.append(getFillerTile(firstState.tilePosition.add(BigInteger.ONE)));
+                // Why -3? Because:
+                // We have a diff, but both borders are exclusive. Since when calculating the diff,
+                // by default one border is inclusive, we need to subtract that on top of the 2 we
+                // are drawing to depict the correct number.
+                // In other words, when skipping from 7 to 14 (with diff 7), the tile 14 is also being drawn next.
+                // When subtracting 2, we would be depicting the 14th with our second printed state, which is not
+                // what's happening and would not make it clear what the contents of the ... are.
+                builder.append("... %d ... ".formatted(diff.subtract(BigInteger.valueOf(3))));
+                builder.append(getFillerTile(next.tilePosition.subtract(BigInteger.ONE)));
+                builder.append(next.toString(headPosition));
             }
             // Go to next
             firstState = next;
@@ -355,12 +370,14 @@ public class TuringTape {
             if (next == null) {
                 throw new NullPointerException("An unknown error occurred while generating a unique string: A state was null.");
             }
-            int diff = next.getTilePosition() - firstState.getTilePosition();
-            if (diff <= 0) {
+            BigInteger diff = next.getTilePosition().subtract(firstState.getTilePosition());
+            if (diff.compareTo(BigInteger.ZERO) <= 0) {
                 break;
             }
             builder.append(";%s".formatted(toUniqueStringSingleTile(next.value)));
-            builder.append(";".repeat(diff - 1));
+            for (BigInteger i = BigInteger.ZERO; i.compareTo(diff.subtract(BigInteger.ONE)) < 0; i = i.add(BigInteger.ONE)) {
+                builder.append(';');
+            }
             // Go to next
             firstState = next;
         }
@@ -377,8 +394,8 @@ public class TuringTape {
         return number.toString();
     }
     
-    private String getFillerTile(int headPosition) {
-        if (this.headPosition == headPosition)
+    private String getFillerTile(BigInteger headPosition) {
+        if (this.headPosition.compareTo(headPosition) == 0)
             return FILLER_TILE_SELECTED;
         return FILLER_TILE;
     }
@@ -392,7 +409,7 @@ public class TuringTape {
         private BigInteger value;
         private TuringTapeTile previousTile;
         private TuringTapeTile nextTile;
-        private final int tilePosition;
+        private final BigInteger tilePosition;
 
         /**
          * Creates a new Turing Tape Tile that can store neighbors and value.
@@ -404,7 +421,7 @@ public class TuringTape {
          * @param value The value
          */
         private TuringTapeTile(
-                int tilePosition,
+                BigInteger tilePosition,
                 TuringTapeTile previous,
                 TuringTapeTile next,
                 BigInteger value
@@ -419,7 +436,7 @@ public class TuringTape {
          * Gets the tile position.
          * @return The tile position.
          */
-        private int getTilePosition() {
+        private BigInteger getTilePosition() {
             return tilePosition;
         }
 
@@ -464,8 +481,8 @@ public class TuringTape {
             return "[%s]".formatted(getBigIntAsString(value));
         }
         
-        public String toString(int headPosition) {
-            if (headPosition == this.tilePosition)
+        public String toString(BigInteger headPosition) {
+            if (headPosition.compareTo(this.tilePosition) == 0)
                 return "[>%s<]".formatted(getBigIntAsString(value));
             return this.toString();
         }

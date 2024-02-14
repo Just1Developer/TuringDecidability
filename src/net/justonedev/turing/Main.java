@@ -209,7 +209,7 @@ public class Main {
      * @param overhead The amount the tape is longer than the input. Must be >= 0.
      * @return The Acceptor
      */
-    private static Acceptor getSimpleFiniteAcceptor(String input, int overhead) {
+    private static Acceptor getSimpleFiniteAcceptor(String input, BigInteger overhead) {
 
         // This is messy and clunky
         BigInteger[] tapeContent = new BigInteger[input.length()];
@@ -229,7 +229,7 @@ public class Main {
             tapeContent[i] = numRepr;
         }
 
-        TuringTape tape = new TuringTape(input.length() + overhead, 0, tapeContent);
+        TuringTape tape = new TuringTape(overhead.add(BigInteger.valueOf(input.length())), BigInteger.ZERO, tapeContent);
 
         Acceptor acceptor = new Acceptor();
         acceptor.setTape(tape);
