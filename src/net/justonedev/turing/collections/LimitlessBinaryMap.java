@@ -186,7 +186,37 @@ public class LimitlessBinaryMap<K, V> {
     public boolean containsValue(V value) {
         return getPairByValue(value).isFound();
     }
-
+    
+    /**
+     * Gets a LimitlessCollection with all keys of the map.
+     * The collection is generated on the fly every time and not cached.
+     * @return Limitless collection of keys.
+     */
+    public LimitlessCollection<K> keys() {
+        LimitlessCollection<K> keys = new LimitlessCollection<>();
+        CollectionPair pair = firstContainer;
+        while (pair != null) {
+            keys.add(pair.getKey());
+            pair = pair.getNextContainer();
+        }
+        return keys;
+    }
+    
+    /**
+     * Gets a LimitlessCollection with all values of the map.
+     * The collection is generated on the fly every time and not cached.
+     * @return Limitless collection of values.
+     */
+    public LimitlessCollection<V> values() {
+        LimitlessCollection<V> values = new LimitlessCollection<>();
+        CollectionPair pair = firstContainer;
+        while (pair != null) {
+            values.add(pair.getValue());
+            pair = pair.getNextContainer();
+        }
+        return values;
+    }
+    
     /**
      * A single storage element for the history.
      *

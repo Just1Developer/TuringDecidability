@@ -1,6 +1,7 @@
 package net.justonedev.turing;
 
 import net.justonedev.turing.collections.LimitlessBinaryMap;
+import net.justonedev.turing.collections.LimitlessCollection;
 
 import java.math.BigInteger;
 
@@ -66,7 +67,48 @@ public class TuringTape {
      * @param headPosition The starting position (index) of the head of the turing machine.
      * @param values The contents of the tape.
      */
+    public TuringTape(final BigInteger tapeSize, final BigInteger headPosition, final LimitlessCollection<BigInteger> values) {
+        validateArguments(tapeSize, headPosition, values.size());
+        
+        this.tapeSize = tapeSize;
+        this.headPosition = headPosition;
+        
+        createTape(values);
+    }
+
+    /**
+     * Creates a new Turing Tape object. Needs to specify tapeSize and headPosition,
+     * inserting values is optional.
+     * Value insertion starts at zero by default, for filler values add null entries at the start.
+     *
+     * @throws IllegalArgumentException If any argument is invalid. Invalid argument cases are:
+     * - Tape size is smaller than 1.
+     * - Head position is negative.
+     * - Head position is >= tape size. Equal is invalid since position functions as index.
+     * - The tape is not long enough to store all values.
+     * Please insure validity of arguments beforehand or catch thrown exceptions.
+     *
+     * @param tapeSize The size of the tape. Unchangeable.
+     * @param headPosition The starting position (index) of the head of the turing machine.
+     * @param values The contents of the tape.
+     */
     public TuringTape(final BigInteger tapeSize, final BigInteger headPosition, final BigInteger... values) {
+        validateArguments(tapeSize, headPosition, BigInteger.valueOf(values.length));
+        
+        this.tapeSize = tapeSize;
+        this.headPosition = headPosition;
+
+        createTape(values);
+    }
+    
+    /**
+     * Validates input arguments. Throws an exception if arguments are invalid.
+     * @throws IllegalArgumentException If any argument is invalid for any reason.
+     * @param tapeSize The size of the tape.
+     * @param headPosition The starting position (index) of the head of the turing machine.
+     * @param valuesSize The size of the tape contents.
+     */
+    private void validateArguments(final BigInteger tapeSize, final BigInteger headPosition, final BigInteger valuesSize) {
         if (tapeSize.compareTo(BigInteger.ONE) < 0) {
             throw new IllegalArgumentException("Tape size may not be smaller than 1.");
         }
@@ -76,18 +118,13 @@ public class TuringTape {
         if (headPosition.compareTo(tapeSize) >= 0) {
             throw new IllegalArgumentException("Head position index must be smaller than the tape size.");
         }
-        if (tapeSize.compareTo(BigInteger.valueOf(values.length)) < 0) {
+        if (tapeSize.compareTo(valuesSize) < 0) {
             throw new IllegalArgumentException("Tape is not large enough to store the input.");
         }
-
-        this.tapeSize = tapeSize;
-        this.headPosition = headPosition;
-
-        createTape(values);
     }
 
     /**
-     * Creates the tape and assigns values;
+     * Creates the tape and assigns values.
      * @param values The tape values
      */
     private void createTape(BigInteger... values) {
@@ -99,23 +136,70 @@ public class TuringTape {
         // Start with -1 to trigger if () even if values are empty
         BigInteger tilePos = BigInteger.ZERO;
         for (BigInteger value : values) {
-            // Create a new tile and connect it
-            TuringTapeTile newTile = new TuringTapeTile(tilePos, current, null, value);
-            if (current != null) current.nextTile = newTile;
-            current = newTile;
-            if (tilePos.compareTo(this.headPosition) == 0) {
-                this.currentTapeTile = newTile;
-            }
-            if (tilePos.compareTo(BigInteger.ZERO) == 0) {
-                this.firstTapeTile = newTile;
-            }
-            if (tilePos.compareTo(tapeSize.subtract(BigInteger.ONE)) == 0) {
-                this.lastTapeTile = newTile;
-            }
-
+            current = insertNewTapeTile(current, value, tilePos);
             tilePos = tilePos.add(BigInteger.ONE);
         }
+        
+        finalizeTapeSetup(current, tilePos);
+    }
 
+    /**
+     * Creates the tape and assigns values.
+     * @param values The tape values
+     */
+    private void createTape(LimitlessCollection<BigInteger> values) {
+        TuringTapeTile current = null;
+
+        this.firstTapeTile = null;
+        this.lastTapeTile = null;
+
+        // Start with -1 to trigger if () even if values are empty
+        BigInteger tilePos = BigInteger.ZERO;
+        LimitlessCollection<BigInteger>.CollectionContainer container = values.getFirst();
+        
+        while (container != null) {
+            BigInteger value = container.getValue();
+            current = insertNewTapeTile(current, value, tilePos);
+            
+            tilePos = tilePos.add(BigInteger.ONE);
+            container = container.getNextContainer();
+        }
+        
+        finalizeTapeSetup(current, tilePos);
+    }
+    
+    /**
+     * Inserts a new tape tile. Extracted from duplicate code fragment.
+     * Returns the new "current" tape tile.
+     * @param current The current Tape tile. Updated and new one returned.
+     * @param value The value to write.
+     * @param tilePos The tile position.
+     * @return The new tape tile.
+     */
+    private TuringTapeTile insertNewTapeTile(TuringTapeTile current, final BigInteger value, final BigInteger tilePos) {
+        // Create a new tile and connect it
+        TuringTapeTile newTile = new TuringTapeTile(tilePos, current, null, value);
+        if (current != null) current.nextTile = newTile;
+        current = newTile;
+        if (tilePos.compareTo(this.headPosition) == 0) {
+            this.currentTapeTile = newTile;
+        }
+        if (tilePos.compareTo(BigInteger.ZERO) == 0) {
+            this.firstTapeTile = newTile;
+        }
+        if (tilePos.compareTo(tapeSize.subtract(BigInteger.ONE)) == 0) {
+            this.lastTapeTile = newTile;
+        }
+        return current;
+    }
+    
+    /**
+     * Finalizes global variable setup when a variant of createTape is called.
+     * For internal use and setup only.
+     * @param current The current tape tile from the setup method.
+     * @param tilePos The tile position.
+     */
+    private void finalizeTapeSetup(TuringTapeTile current, BigInteger tilePos) {
         // Insert a first tile
         if (this.firstTapeTile == null) {
             // None were created
@@ -125,7 +209,7 @@ public class TuringTape {
                 this.firstTapeTile = new TuringTapeTile(BigInteger.ZERO, null, currentTapeTile, null);
             }
         }
-
+        
         // Insert a last tile
         if (this.lastTapeTile == null) {
             // Tape size is larger than inputs
@@ -134,7 +218,7 @@ public class TuringTape {
                     this.firstTapeTile,
                     null);
         }
-
+        
         // If not yet accommodated and currentTapeTile is null
         if (headPosition.compareTo(tilePos) > 0) {
             if (current == null) {
@@ -144,7 +228,7 @@ public class TuringTape {
                 current.nextTile = this.currentTapeTile;
             }
         }
-
+        
         if (current != null && current.nextTile == null) {
             current.nextTile = lastTapeTile;
         }

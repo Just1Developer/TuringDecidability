@@ -1,5 +1,7 @@
 package net.justonedev.turing.collections;
 
+import java.math.BigInteger;
+
 /**
  * A collection class of theoretically infinite size.
  * Not as fast as any set, but in theory unlimited in size.
@@ -17,6 +19,7 @@ public class LimitlessCollection<T> {
      */
     private static final boolean DEFAULT_ALLOW_DUPES = true;
 
+    private BigInteger size;
     private CollectionContainer firstContainer;
     private CollectionContainer lastContainer;
     private boolean allowDuplicates;
@@ -37,6 +40,7 @@ public class LimitlessCollection<T> {
      */
     public LimitlessCollection(boolean allowDuplicates) {
         this.allowDuplicates = allowDuplicates;
+        this.size = BigInteger.ZERO;
     }
 
     /**
@@ -54,6 +58,28 @@ public class LimitlessCollection<T> {
     public void setAllowDuplicates(boolean allowDuplicates) {
         this.allowDuplicates = allowDuplicates;
     }
+    
+    /**
+     * Gets the size of the Collection.
+     * @return The size of the collection.
+     */
+    public BigInteger size() {
+        return size;
+    }
+    
+    /**
+     * Gets the first element of the List.
+     */
+    public CollectionContainer getFirst() {
+        return firstContainer;
+    }
+    
+    /**
+     * Gets the last element of the List.
+     */
+    public CollectionContainer getLast() {
+        return lastContainer;
+    }
 
     /**
      * Adds a new entry to the collection.
@@ -70,12 +96,14 @@ public class LimitlessCollection<T> {
             // First element, always not in
             firstContainer = container;
             lastContainer = container;
+            size = size.add(BigInteger.ONE);
             return true;
         }
         if (!allowDuplicates && contains(entry)) return false;
         CollectionContainer container = new CollectionContainer(lastContainer, entry);
         lastContainer.setNextContainer(container);
         lastContainer = container;
+        size = size.add(BigInteger.ONE);
         return true;
     }
 
@@ -124,10 +152,11 @@ public class LimitlessCollection<T> {
 
     /**
      * A single storage element for the history.
+     * Setters and Constructor only visible inside collection, getters are public.
      *
      * @author justonedeveloper
      */
-    private class CollectionContainer {
+    public class CollectionContainer {
 
         private T storageValue;
         private CollectionContainer previousContainer;
@@ -187,7 +216,7 @@ public class LimitlessCollection<T> {
          * Gets the unique container ID.
          * @return The container id.
          */
-        private int getContainerID() {
+        public int getContainerID() {
             return containerID;
         }
 
@@ -195,7 +224,7 @@ public class LimitlessCollection<T> {
          * Gets the value of this container. May be null.
          * @return The stored value.
          */
-        private T getValue() {
+        public T getValue() {
             return storageValue;
         }
 
@@ -203,7 +232,7 @@ public class LimitlessCollection<T> {
          * Sets the value of the container. Can be null.
          * @param value The new value.
          */
-        private void setValue(T value) {
+        public void setValue(T value) {
             storageValue = value;
         }
 
@@ -211,7 +240,7 @@ public class LimitlessCollection<T> {
          * If the stored value is != null.
          * @return Existence of stored value.
          */
-        private boolean hasValue() {
+        public boolean hasValue() {
             return storageValue != null;
         }
 
@@ -219,7 +248,7 @@ public class LimitlessCollection<T> {
          * Gets the next container in the list. May be null.
          * @return Next container or null.
          */
-        private CollectionContainer getNextContainer() {
+        public CollectionContainer getNextContainer() {
             return nextContainer;
         }
 
@@ -235,7 +264,7 @@ public class LimitlessCollection<T> {
          * If there is a next container != null.
          * @return If the next container is not null.
          */
-        private boolean hasNextContainer() {
+        public boolean hasNextContainer() {
             return nextContainer != null;
         }
 
@@ -243,7 +272,7 @@ public class LimitlessCollection<T> {
          * Gets the previous container in the list. May be null.
          * @return Previous container or null.
          */
-        private CollectionContainer getPreviousContainer() {
+        public CollectionContainer getPreviousContainer() {
             return previousContainer;
         }
 
@@ -259,7 +288,7 @@ public class LimitlessCollection<T> {
          * If there is a previous container != null.
          * @return If the previous container is not null.
          */
-        private boolean hasPreviousContainer() {
+        public boolean hasPreviousContainer() {
             return previousContainer != null;
         }
 
