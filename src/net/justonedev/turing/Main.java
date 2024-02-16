@@ -232,8 +232,7 @@ public class Main {
      */
     private static Acceptor getSimpleFiniteAcceptor(String input, BigInteger overhead) {
         
-        LimitlessBinaryMap<BigInteger, String> inputMap = new LimitlessBinaryMap<>();
-        autofillCharsFromString(inputMap, input);
+        LimitlessBinaryMap<BigInteger, String> inputMap = Convert.getTranslationMapFromSingleString(input);
         
         TuringTape tape = new TuringTape(overhead.add(BigInteger.valueOf(input.length())), BigInteger.ZERO, inputMap, input.split(""));
         
@@ -256,25 +255,5 @@ public class Main {
         );
 
         return acceptor;
-    }
-    
-    
-    /**
-     * Adds all character from a String to the map and automatically assigns them a BigInteger.
-     * This method is not a general feature from LimitlessBinaryMap because of the types K and V needing to match.
-     * @param map The map to insert the chars into.
-     * @param input The String input
-     */
-    private static void autofillCharsFromString(LimitlessBinaryMap<BigInteger, String> map, String input) {
-        BigInteger counter = BigInteger.ZERO;
-        for (String in : input.split("")) {
-            if (map.containsValue(in)) continue;
-            // Count to next free
-            while (map.containsKey(counter)) counter = counter.add(BigInteger.ONE);
-            
-            map.add(counter, in);
-            // So we don't needlessly loop over the map
-            counter = counter.add(BigInteger.ONE);
-        }
     }
 }
