@@ -1,5 +1,7 @@
 package net.justonedev.turing.collections;
 
+import java.math.BigInteger;
+
 /**
  * A limitless collection that pairs up two values.
  * Contrary to a map in Java, this collection maps 1-to-1.
@@ -11,47 +13,23 @@ package net.justonedev.turing.collections;
  */
 public class LimitlessBinaryMap<K, V> {
 
-    /**
-     * Default Behaviour: List, duplicates allowed.
-     */
-    private static final boolean DEFAULT_ALLOW_DUPES = true;
-
     private CollectionPair firstContainer;
     private CollectionPair lastContainer;
-    private boolean allowDuplicates;
+    private BigInteger size;
 
     /**
      * Creates a new primitive history storage collection.
-     * Can be set to allow/disallow duplicate entries, default is allow.
      */
     public LimitlessBinaryMap() {
-        this(DEFAULT_ALLOW_DUPES);
+        size = BigInteger.ZERO;
     }
-
+    
     /**
-     * Creates a new primitive history storage collection.
-     * Can be set to allow/disallow duplicate entries.
-     *
-     * @param allowDuplicates If duplicate entries are allowed.
+     * Gets the size of the map.
+     * @return Size of the map.
      */
-    public LimitlessBinaryMap(boolean allowDuplicates) {
-        this.allowDuplicates = allowDuplicates;
-    }
-
-    /**
-     * If the collection allows duplicate elements.
-     * @return True if collection allows duplicates.
-     */
-    public boolean getAllowDuplicated() {
-        return allowDuplicates;
-    }
-
-    /**
-     * Sets if the collection should allow duplicate entries.
-     * Entries already in the set will not be affected by this change.
-     */
-    public void setAllowDuplicates(boolean allowDuplicates) {
-        this.allowDuplicates = allowDuplicates;
+    public BigInteger size() {
+        return size;
     }
 
     /**
@@ -73,13 +51,15 @@ public class LimitlessBinaryMap<K, V> {
             // First element, always not in
             firstContainer = container;
             lastContainer = container;
+            size = size.add(BigInteger.ONE);
             return true;
         }
-        if (!allowDuplicates && containsKey(key)) return false;
-        if (!allowDuplicates && containsValue(value)) return false;
+        if (containsKey(key)) return false;
+        if (containsValue(value)) return false;
         CollectionPair container = new CollectionPair(lastContainer, key, value);
         lastContainer.setNextContainer(container);
         lastContainer = container;
+        size = size.add(BigInteger.ONE);
         return true;
     }
 

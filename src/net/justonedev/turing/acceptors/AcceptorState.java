@@ -11,7 +11,7 @@ import net.justonedev.turing.TuringState;
  */
 public class AcceptorState extends TuringState {
 
-    private boolean isAcceptingState;
+    private boolean isAcceptingState = false;
 
     //region Constructors
 
@@ -79,5 +79,13 @@ public class AcceptorState extends TuringState {
     public void setIsAcceptingState(boolean acceptingState) {
         this.isAcceptingState = acceptingState;
     }
-
+    
+    /**
+     * Gets the state as a String.
+     * @return State as String.
+     */
+    @Override
+    public String toString() {
+        return "(%s::%d | %s)".formatted(getStateName(), getStateID(), isAcceptingState);
+    }
 }

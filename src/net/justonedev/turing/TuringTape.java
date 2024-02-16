@@ -2,6 +2,7 @@ package net.justonedev.turing;
 
 import net.justonedev.turing.collections.LimitlessBinaryMap;
 import net.justonedev.turing.collections.LimitlessCollection;
+import net.justonedev.turing.collections.MapResult;
 
 import java.math.BigInteger;
 
@@ -52,9 +53,13 @@ public class TuringTape {
     }
 
     /**
-     * Creates a new Turing Tape object. Needs to specify tapeSize and headPosition,
-     * inserting values is optional.
+     * Creates a new Turing Tape object. Needs to specify tapeSize and headPosition.
      * Value insertion starts at zero by default, for filler values add null entries at the start.
+     * The translation map maps each String to it's BigInteger counterpart, so strings must occur
+     * as arguments the same as in the map. If an input is not found, an error message will be
+     * displayed and the symbol will be skipped.
+     * <p></p>
+     * Note that all Strings are treated as singly symbols to allow combination of symbols as one.
      *
      * @throws IllegalArgumentException If any argument is invalid. Invalid argument cases are:
      * - Tape size is smaller than 1.
@@ -65,15 +70,16 @@ public class TuringTape {
      *
      * @param tapeSize The size of the tape. Unchangeable.
      * @param headPosition The starting position (index) of the head of the turing machine.
-     * @param values The contents of the tape.
+     * @param translationMap The translation map.
+     * @param tapeInput The contents of the tape.
      */
-    public TuringTape(final BigInteger tapeSize, final BigInteger headPosition, final LimitlessCollection<BigInteger> values) {
-        validateArguments(tapeSize, headPosition, values.size());
+    public TuringTape(final BigInteger tapeSize, final BigInteger headPosition, final LimitlessBinaryMap<BigInteger, String> translationMap, String... tapeInput) {
+        validateArguments(tapeSize, headPosition, BigInteger.valueOf(tapeInput.length));
         
         this.tapeSize = tapeSize;
         this.headPosition = headPosition;
         
-        createTape(values);
+        createTape(translationMap, tapeInput);
     }
 
     /**
@@ -125,7 +131,7 @@ public class TuringTape {
 
     /**
      * Creates the tape and assigns values.
-     * @param values The tape values
+     * @param values The tape values.
      */
     private void createTape(BigInteger... values) {
         TuringTapeTile current = null;
@@ -145,9 +151,10 @@ public class TuringTape {
 
     /**
      * Creates the tape and assigns values.
-     * @param values The tape values
+     * @param translationMap The translation map.
+     * @param tapeInput The contents of the tape.
      */
-    private void createTape(LimitlessCollection<BigInteger> values) {
+    private void createTape(final LimitlessBinaryMap<BigInteger, String> translationMap, String... tapeInput) {
         TuringTapeTile current = null;
 
         this.firstTapeTile = null;
@@ -155,14 +162,17 @@ public class TuringTape {
 
         // Start with -1 to trigger if () even if values are empty
         BigInteger tilePos = BigInteger.ZERO;
-        LimitlessCollection<BigInteger>.CollectionContainer container = values.getFirst();
         
-        while (container != null) {
-            BigInteger value = container.getValue();
+        for (String in : tapeInput) {
+            MapResult<BigInteger, String> result = translationMap.getPairByValue(in);
+            if (!result.isFound()) {
+                System.err.printf("Couldn't find translation for symbol '%s', skipping..%n", in);
+                continue;
+            }
+            BigInteger value = result.getKey();
             current = insertNewTapeTile(current, value, tilePos);
             
             tilePos = tilePos.add(BigInteger.ONE);
-            container = container.getNextContainer();
         }
         
         finalizeTapeSetup(current, tilePos);
@@ -615,7 +625,7 @@ public class TuringTape {
          * @return The tile as String
          */
         public String toString(LimitlessBinaryMap<BigInteger, String> translationMap) {
-            return "[%s]".formatted(getBigIntAsString(value));
+            return "[%s]".formatted(getTranslation(value, translationMap));
         }
 
         /**
@@ -643,6 +653,7 @@ public class TuringTape {
          * @return The String value or the BigInt as String.
          */
         private String getTranslation(BigInteger key, LimitlessBinaryMap<BigInteger, String> map) {
+            if (key == null) return getBigIntAsString(null);
             if (map == null) return key.toString();
             String value = map.getValue(key);
             if (value != null) return value;

@@ -66,12 +66,46 @@ public class StateTransition {
     ) {
         this(fromState, toState, new HashSet<>(Collections.singletonList(null)), outputChar, moveAction);
     }
-
+    
+    /**
+     * Creates a new State Transition.
+     * Input chars will be empty, output char will be null.
+     *
+     * @param fromState The origin state.
+     * @param toState The destination state.
+     * @param moveAction The move action after.
+     */
     public StateTransition(
             TuringState fromState,
-            TuringState toState
+            TuringState toState,
+            MoveAction moveAction
     ) {
-        this(fromState, toState, new HashSet<>(), BigInteger.ZERO, MoveAction.NONE);
+        this(fromState, toState, new HashSet<>(), null, moveAction);
+    }
+    
+    /**
+     * Creates a new State Transition.
+     * Takes in a number of Strings and a map to translate the Strings into BigInteger numbers.
+     * Performs the {@code addInputChars(...)} method to map, addMissingMappings and the actual input characters.
+     * Does not add additional mappings as there is no way to return the map.
+     *
+     * @param fromState The origin state.
+     * @param toState The destination state.
+     * @param map The translation map.
+     * @param outputChar The output char.
+     * @param moveAction The move action after.
+     * @param inputChars The list of various input characters as Strings.
+     */
+    public StateTransition(
+            TuringState fromState,
+            TuringState toState,
+            LimitlessBinaryMap<BigInteger, String> map,
+            BigInteger outputChar,
+            MoveAction moveAction,
+            String... inputChars
+    ) {
+        this(fromState, toState, new HashSet<>(), outputChar, moveAction);
+        addInputChars(map, false, inputChars);
     }
 
     public TuringState getOriginState() {

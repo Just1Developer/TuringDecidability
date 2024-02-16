@@ -2,6 +2,7 @@ package net.justonedev.turing;
 
 import net.justonedev.turing.acceptors.Acceptor;
 import net.justonedev.turing.acceptors.AcceptorState;
+import net.justonedev.turing.collections.LimitlessBinaryMap;
 import net.justonedev.turing.supervisor.PrimitiveSupervisor;
 import net.justonedev.turing.supervisor.Supervisor;
 import net.justonedev.turing.supervisor.SupervisorResult;
@@ -24,12 +25,14 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello world!");
         // Lets do a test
-        TuringMachine machine = getLoopingMachine();
-        //machine = getSmallHaltingMachine();
+        //TuringMachine machine = getLoopingMachine();
+        //TuringMachine machine = getSmallHaltingMachine();
+        TuringMachine machine = getSimpleFiniteAcceptor("aaaabb", 30);
         TuringTape tape = machine.getTape();
         
         System.out.println("Tape: " + tape);
         System.out.println("Tape unique: " + tape.getUniqueFullString());
+        System.out.println("Tape better: " + machine.getTapeString());
 
         System.out.println("Press any button to continue...");
         waitForCharInput();
@@ -38,6 +41,12 @@ public class Main {
         supervisor.setPrintEnabled(true);
         SupervisorResult result = runMachineSupervised(supervisor, true, 300);
         System.out.println("Result: " + result);
+        
+        // I don't always want to comment / uncomment this
+        if (machine instanceof Acceptor) {
+            System.out.printf("Input accepted: %s, state: %s%n", ((Acceptor) machine).isInputAccepted(), machine.getCurrentState());
+        }
+        System.out.println("Tape: " + machine.getTapeString());
     }
     
     /**
@@ -196,6 +205,20 @@ public class Main {
         machine.addTransitions(tr1, tr2, tr3);
         return machine;
     }
+    
+    /**
+     * Gets a simple acceptor for input validation.
+     * Examples are taken from simple tasks, current configuration:
+     * <p></p>
+     * {0,1}*#{0,1}*, first half has at least as many 1s as second half.
+     *
+     * @param input The input for the acceptor.
+     * @param overhead The amount the tape is longer than the input. Must be >= 0.
+     * @return The Acceptor
+     */
+    private static Acceptor getSimpleFiniteAcceptor(String input, long overhead) {
+        return getSimpleFiniteAcceptor(input, BigInteger.valueOf(overhead));
+    }
 
     /**
      * Gets a simple acceptor for input validation.
@@ -208,39 +231,50 @@ public class Main {
      * @return The Acceptor
      */
     private static Acceptor getSimpleFiniteAcceptor(String input, BigInteger overhead) {
-
-        // This is messy and clunky
-        BigInteger[] tapeContent = new BigInteger[input.length()];
-        HashMap<Integer, Character> inputMappings = new HashMap<>();
-        HashMap<Character, Integer> outputMappings = new HashMap<>();
-        for (int i = 0; i < input.length(); ++i) {
-            char c = input.charAt(i);
-            BigInteger numRepr;
-            if (!outputMappings.containsKey(c)) {
-                int repr = inputMappings.size();
-                inputMappings.put(repr, c);
-                outputMappings.put(c, repr);
-                numRepr = new BigInteger(String.valueOf(repr));
-            } else {
-                numRepr = new BigInteger(String.valueOf(outputMappings.get(c)));
-            }
-            tapeContent[i] = numRepr;
-        }
-
-        TuringTape tape = new TuringTape(overhead.add(BigInteger.valueOf(input.length())), BigInteger.ZERO, tapeContent);
-
+        
+        LimitlessBinaryMap<BigInteger, String> inputMap = new LimitlessBinaryMap<>();
+        autofillCharsFromString(inputMap, input);
+        
+        TuringTape tape = new TuringTape(overhead.add(BigInteger.valueOf(input.length())), BigInteger.ZERO, inputMap, input.split(""));
+        
         Acceptor acceptor = new Acceptor();
         acceptor.setTape(tape);
+        acceptor.setCharacterTranslationMap(inputMap);
+        
+        // Regex: a*b
 
-        AcceptorState state1 = new AcceptorState(0);
-        AcceptorState state2 = new AcceptorState(1);
+        AcceptorState state1 = new AcceptorState(1, "allAs");
+        AcceptorState state2 = new AcceptorState(2, "StopOnB");
+        AcceptorState state3 = new AcceptorState(3, "Failure");
+        state2.setIsAcceptingState(true);
 
         acceptor.addTransitions(
-            new StateTransition(state1, state1, BigInteger.ONE, BigInteger.ZERO, MoveAction.RIGHT),
-            new StateTransition(state1, state2, BigInteger.ZERO, BigInteger.ONE, MoveAction.RIGHT),
-            new StateTransition(state2, state2, (BigInteger) null, BigInteger.TWO, MoveAction.RIGHT)
+            new StateTransition(state1, state1, inputMap, inputMap.getKey("a"), MoveAction.RIGHT, "a"),
+            new StateTransition(state1, state2, inputMap, inputMap.getKey("b"), MoveAction.RIGHT, "b"),
+            new StateTransition(state2, state3, inputMap, inputMap.getKey("a"), MoveAction.RIGHT, "a", "b")
+                // No transition for state 3, just halt in a non-accepting state
         );
 
         return acceptor;
+    }
+    
+    
+    /**
+     * Adds all character from a String to the map and automatically assigns them a BigInteger.
+     * This method is not a general feature from LimitlessBinaryMap because of the types K and V needing to match.
+     * @param map The map to insert the chars into.
+     * @param input The String input
+     */
+    private static void autofillCharsFromString(LimitlessBinaryMap<BigInteger, String> map, String input) {
+        BigInteger counter = BigInteger.ZERO;
+        for (String in : input.split("")) {
+            if (map.containsValue(in)) continue;
+            // Count to next free
+            while (map.containsKey(counter)) counter = counter.add(BigInteger.ONE);
+            
+            map.add(counter, in);
+            // So we don't needlessly loop over the map
+            counter = counter.add(BigInteger.ONE);
+        }
     }
 }
