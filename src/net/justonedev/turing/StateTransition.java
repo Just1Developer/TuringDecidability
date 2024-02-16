@@ -4,7 +4,6 @@ import net.justonedev.turing.collections.LimitlessBinaryMap;
 import net.justonedev.turing.collections.MapResult;
 
 import java.math.BigInteger;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;

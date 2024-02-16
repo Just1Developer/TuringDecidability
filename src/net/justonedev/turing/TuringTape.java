@@ -1,7 +1,6 @@
 package net.justonedev.turing;
 
 import net.justonedev.turing.collections.LimitlessBinaryMap;
-import net.justonedev.turing.collections.LimitlessCollection;
 import net.justonedev.turing.collections.MapResult;
 
 import java.math.BigInteger;

@@ -9,7 +9,6 @@ import net.justonedev.turing.supervisor.SupervisorResult;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.HashMap;
 
 /**
  * The main class, used for debugging, testing and running programs.
