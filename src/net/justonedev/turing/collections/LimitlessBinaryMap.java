@@ -84,22 +84,24 @@ public class LimitlessBinaryMap<K, V> {
     }
 
     /**
-     * Gets the value mapped to a given key.
-     * If the map does not contain the key, returns null.
+     * Gets the entire pair by its key.
+     * Will return a static struct that will always be not null.
+     * The isFound() method indicates if the search yielded any result,
+     * Key and Value may be null either way.
      *
      * @param key The key (first pair element).
-     * @return The value of the key or null.
+     * @return The pair associated with the key.
      */
-    public V getValue(K key) {
+    public MapResult<K, V> getPairByKey(K key) {
         if (lastContainer == null || firstContainer == null)
-            return null;
+            return new MapResult<>();
         // Doubly recursive search
         CollectionPair frontSearcher = firstContainer, backSearcher = lastContainer;
         while (frontSearcher != null && backSearcher != null) {
 
             // Compare values
-            if (frontSearcher.getKey().equals(key)) return frontSearcher.getValue();
-            if (backSearcher.getKey().equals(key)) return backSearcher.getValue();
+            if (frontSearcher.getKey().equals(key)) return new MapResult<>(frontSearcher.getKey(), frontSearcher.getValue());
+            if (backSearcher.getKey().equals(key)) return new MapResult<>(backSearcher.getKey(), backSearcher.getValue());
 
             // get next
             backSearcher = backSearcher.getPreviousContainer();
@@ -107,7 +109,36 @@ public class LimitlessBinaryMap<K, V> {
             if (backSearcher != null && backSearcher.equals(frontSearcher)) break;
             frontSearcher = frontSearcher.getNextContainer();
         }
-        return null;
+        return new MapResult<>();
+    }
+
+    /**
+     * Gets the entire pair by its value.
+     * Will return a static struct that will always be not null.
+     * The isFound() method indicates if the search yielded any result,
+     * Key and Value may be null either way.
+     *
+     * @param value The value (second pair element).
+     * @return The pair associated with the value.
+     */
+    public MapResult<K, V> getPairByValue(V value) {
+        if (lastContainer == null || firstContainer == null)
+            return new MapResult<>();
+        // Doubly recursive search
+        CollectionPair frontSearcher = firstContainer, backSearcher = lastContainer;
+        while (frontSearcher != null && backSearcher != null) {
+
+            // Compare values
+            if (frontSearcher.getValue().equals(value)) return new MapResult<>(frontSearcher.getKey(), frontSearcher.getValue());
+            if (backSearcher.getValue().equals(value)) return new MapResult<>(backSearcher.getKey(), backSearcher.getValue());
+
+            // get next
+            backSearcher = backSearcher.getPreviousContainer();
+            // Compare if they met
+            if (backSearcher != null && backSearcher.equals(frontSearcher)) break;
+            frontSearcher = frontSearcher.getNextContainer();
+        }
+        return new MapResult<>();
     }
 
     /**
@@ -118,23 +149,7 @@ public class LimitlessBinaryMap<K, V> {
      * @return The key of the value or null.
      */
     public K getKey(V value) {
-        if (lastContainer == null || firstContainer == null)
-            return null;
-        // Doubly recursive search
-        CollectionPair frontSearcher = firstContainer, backSearcher = lastContainer;
-        while (frontSearcher != null && backSearcher != null) {
-
-            // Compare values
-            if (frontSearcher.getValue().equals(value)) return frontSearcher.getKey();
-            if (backSearcher.getValue().equals(value)) return backSearcher.getKey();
-
-            // get next
-            backSearcher = backSearcher.getPreviousContainer();
-            // Compare if they met
-            if (backSearcher != null && backSearcher.equals(frontSearcher)) break;
-            frontSearcher = frontSearcher.getNextContainer();
-        }
-        return null;
+        return getPairByValue(value).getKey();
     }
 
     /**
@@ -146,7 +161,18 @@ public class LimitlessBinaryMap<K, V> {
      * @return True if the set contains the key, false if not.
      */
     public boolean containsKey(K key) {
-        return getValue(key) != null;
+        return getPairByKey(key).isFound();
+    }
+
+    /**
+     * Gets the value mapped to a given key.
+     * If the map does not contain the key, returns null.
+     *
+     * @param key The key (first pair element).
+     * @return The value of the key or null.
+     */
+    public V getValue(K key) {
+        return getPairByKey(key).getValue();
     }
 
     /**
@@ -158,7 +184,7 @@ public class LimitlessBinaryMap<K, V> {
      * @return True if the set contains the value, false if not.
      */
     public boolean containsValue(V value) {
-        return getKey(value) != null;
+        return getPairByValue(value).isFound();
     }
 
     /**
@@ -358,4 +384,5 @@ public class LimitlessBinaryMap<K, V> {
             return containerID;
         }
     }
+
 }

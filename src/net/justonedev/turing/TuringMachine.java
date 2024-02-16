@@ -1,5 +1,7 @@
 package net.justonedev.turing;
 
+import net.justonedev.turing.collections.LimitlessBinaryMap;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +14,6 @@ import java.util.List;
  */
 public class TuringMachine {
 
-    // Todo maybe add callback for output function
-
     private static final String HALT_STRING = "HALT";
     private static final String EMPTY_SQUARE = "[]";
     private static final String ADVANCED_PRINT = "%s --%s--> %s | >> %s-%s%n";
@@ -22,6 +22,8 @@ public class TuringMachine {
     private List<TuringState> states;
     private TuringState currentState;
     private boolean halted;
+
+    private LimitlessBinaryMap<BigInteger, String> characterTranslationMap = null;
 
     /**
      * Creates a new turing machine
@@ -63,6 +65,24 @@ public class TuringMachine {
      */
     public void setTape(TuringTape tape) {
         this.turingTape = tape;
+    }
+
+    /**
+     * Gets the Map for translating numbers (internal tape values) to their respective
+     * output. Although outputs are Strings, it's recommended to only use one character.
+     * @return The Character Translation map for {@code toString()}.
+     */
+    public LimitlessBinaryMap<BigInteger, String> getCharacterTranslationMap() {
+        return characterTranslationMap;
+    }
+
+    /**
+     * Sets the map for translating tape values to their printed (shown) value.
+     * Although outputs are Strings, it's recommended to only use one character.
+     * Only used when calling {@code TuringMachine.toString()}.
+     */
+    public void setCharacterTranslationMap(LimitlessBinaryMap<BigInteger, String> map) {
+        this.characterTranslationMap = map;
     }
 
     /**
@@ -240,6 +260,25 @@ public class TuringMachine {
      */
     private static String getMoveAction(MoveAction action) {
         return action.toString().substring(0, 1);
+    }
+
+    /**
+     * Gets the tape as a String with the Translations applied
+     * to the tape.
+     * @return Tape as String with translations.
+     */
+    public String getTapeString() {
+        return getTape().toString(characterTranslationMap);
+    }
+
+    /**
+     * Returns the Turing Machine as String.
+     * Todo::Do. Not implemented yet.
+     * @return The Machine as String.
+     */
+    @Override
+    public String toString() {
+        return super.toString();
     }
 
     /**

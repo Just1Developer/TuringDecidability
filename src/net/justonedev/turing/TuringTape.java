@@ -1,5 +1,7 @@
 package net.justonedev.turing;
 
+import net.justonedev.turing.collections.LimitlessBinaryMap;
+
 import java.math.BigInteger;
 
 /**
@@ -301,15 +303,31 @@ public class TuringTape {
         this.headPosition = this.headPosition.add(BigInteger.ONE);
         return false;
     }
-    
+
+    /**
+     * Returns the current tape as a String.
+     * No character translations are applied.
+     * @return Tape as String.
+     */
     @Override
     public String toString() {
+        return toString(null);
+    }
+
+    /**
+     * Returns the current tape as a String while translating the integer values
+     * that have a translation to their translation.
+     *
+     * @param translationMap The translation map. Can be partial.
+     * @return The tape as String.
+     */
+    public String toString(LimitlessBinaryMap<BigInteger, String> translationMap) {
         if (this.firstTapeTile == null) return EMPTY_TAPE;  // Empty Tape
         
         StringBuilder builder = new StringBuilder();
         TuringTapeTile firstState = this.firstTapeTile;
         builder.append("{ Head: %d, Tape: <".formatted(headPosition));
-        builder.append(firstState.toString(headPosition));
+        builder.append(firstState.toString(headPosition, translationMap));
         while (true) {
             TuringTapeTile next = firstState.getNextTile();
             BigInteger diff = next.getTilePosition().subtract(firstState.getTilePosition());
@@ -319,16 +337,16 @@ public class TuringTape {
             builder.append(" ");
             if (diff.compareTo(BigInteger.ONE) == 0) {
                 // Normal, just print the next one
-                builder.append(next.toString(headPosition));
+                builder.append(next.toString(headPosition, translationMap));
             } else if (diff.compareTo(BigInteger.TWO) == 0) {
                 // one in between
                 builder.append(getFillerTile(firstState.tilePosition.add(BigInteger.ONE)));
-                builder.append(next.toString(headPosition));
+                builder.append(next.toString(headPosition, translationMap));
             } else if (diff.compareTo(BigInteger.valueOf(3)) == 0) {
                 // two in between
                 builder.append(getFillerTile(firstState.tilePosition.add(BigInteger.ONE)));
                 builder.append(getFillerTile(firstState.tilePosition.add(BigInteger.TWO)));
-                builder.append(next.toString(headPosition));
+                builder.append(next.toString(headPosition, translationMap));
             } else {
                 // more than two in between
                 builder.append(getFillerTile(firstState.tilePosition.add(BigInteger.ONE)));
@@ -341,7 +359,7 @@ public class TuringTape {
                 // what's happening and would not make it clear what the contents of the ... are.
                 builder.append("... %d ... ".formatted(diff.subtract(BigInteger.valueOf(3))));
                 builder.append(getFillerTile(next.tilePosition.subtract(BigInteger.ONE)));
-                builder.append(next.toString(headPosition));
+                builder.append(next.toString(headPosition, translationMap));
             }
             // Go to next
             firstState = next;
@@ -393,9 +411,16 @@ public class TuringTape {
         if (number == null) return "";
         return number.toString();
     }
-    
-    private String getFillerTile(BigInteger headPosition) {
-        if (this.headPosition.compareTo(headPosition) == 0)
+
+    /**
+     * Gets the appropriate filler tile, either marking as contains head or not.
+     * Returns the empty tile with a head marker if the head position is the tile position.
+     *
+     * @param currentPosition The current position. Used for reference.
+     * @return The Filler tile, either with head marker or normal.
+     */
+    private String getFillerTile(BigInteger currentPosition) {
+        if (this.headPosition.compareTo(currentPosition) == 0)
             return FILLER_TILE_SELECTED;
         return FILLER_TILE;
     }
@@ -475,16 +500,69 @@ public class TuringTape {
         private void setValue(BigInteger integer) {
             value = integer;
         }
-        
+
+        /**
+         * Gets the tile as String with its respective [] format.
+         * @return The tile as String
+         */
         @Override
         public String toString() {
             return "[%s]".formatted(getBigIntAsString(value));
         }
-        
+
+        /**
+         * Gets the tile as String. Marks the tile with arrows if
+         * the head position equals the tile position.
+         *
+         * @param headPosition The head position.
+         * @return The tile as String with the BigInt as value.
+         */
         public String toString(BigInteger headPosition) {
             if (headPosition.compareTo(this.tilePosition) == 0)
                 return "[>%s<]".formatted(getBigIntAsString(value));
             return this.toString();
+        }
+
+        /**
+         * Gets the tile as String with its respective [] format. Maps, if possible,
+         * the BigInt value to its String representation as given by the map.
+         *
+         * @param translationMap The character translation map.
+         * @return The tile as String
+         */
+        public String toString(LimitlessBinaryMap<BigInteger, String> translationMap) {
+            return "[%s]".formatted(getBigIntAsString(value));
+        }
+
+        /**
+         * Gets the tile as String. Marks the tile with arrows if
+         * the head position equals the tile position. Maps, if possible,
+         * the BigInt value to its String representation as given by the map.
+         *
+         * @param headPosition The head position.
+         * @param translationMap The character translation map.
+         * @return The tile as String with the BigInt as value.
+         */
+        public String toString(BigInteger headPosition, LimitlessBinaryMap<BigInteger, String> translationMap) {
+            if (headPosition.compareTo(this.tilePosition) == 0)
+                return "[>%s<]".formatted(getTranslation(value, translationMap));
+            return this.toString(translationMap);
+        }
+
+        /**
+         * Gets the translation for a BigInteger using the given map as lookup table.
+         * Returns the BigInteger if the map does not contain the key or the map itself
+         * is null.
+         *
+         * @param key The BigInteger key
+         * @param map The translation map.
+         * @return The String value or the BigInt as String.
+         */
+        private String getTranslation(BigInteger key, LimitlessBinaryMap<BigInteger, String> map) {
+            if (map == null) return key.toString();
+            String value = map.getValue(key);
+            if (value != null) return value;
+            return getBigIntAsString(key);
         }
         
         /**
